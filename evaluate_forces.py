@@ -125,7 +125,7 @@ def weight_transitions(a1, a2, trans):
             elif not e[0]: h[s][e] = c1[j]*overkill2 #a1 elimination, overkill option for a2
             elif not e[1]: h[s][e] = c2[i]*overkill1 #a2 elimination, overkill option for a1
             else: h[s][e] = c1[j]*c2[i]
-    #for x in sorted(h): print x, h[x]
+    #for x in sorted(h): print(x, h[x])
     return h
 
 def self_loop_dict(trans):
@@ -161,10 +161,10 @@ def start_pct(grid, trans):
                 #paths += 1
                 #depth += len(path)+1
             elif n != prevn and trans[prevn][n] != 0: undone.append(path+[(n, prevv*(trans[prevn][n]+(sld[prevn][0]*(trans[prevn][n]/sld[prevn][1]))))]) #we don't actually need the whole path, can just store the last node and its probability!
-    #print "total length of paths {}".format(depth)
-    #print "average length of paths {}".format(round(depth/float(paths), 2))
-    #print "total nodes {}".format(cnt)
-    #print "total paths {}".format(paths)
+    #print("total length of paths {}".format(depth))
+    #print("average length of paths {}".format(round(depth/float(paths), 2)))
+    #print("total nodes {}".format(cnt))
+    #print("total paths {}".format(paths))
     return [(x, h[x]) for x in h]
 
 def simulate(grid, trans, cap):
@@ -189,25 +189,25 @@ def simulate(grid, trans, cap):
 
 def pprint_a(*c): 
     """print the joint binomial curve of an army"""
-    print "mode: {} ({}%)".format(find_mode(*c), round(mode_value(*c)*100, 1))
-    print "mean: {}".format(round(find_mean(*c), 2))
+    print("mode: {} ({}%)".format(find_mode(*c), round(mode_value(*c)*100, 1)))
+    print("mean: {}".format(round(find_mean(*c), 2)))
     top = int(round(max(*c)*10, 0))
     labels = [str(i*10) for i in range(1, top+1)]
     pipes = ["|" for i in range(top)]
-    print (" "*12)+(" "*8).join(labels)
-    print (" "*3)+("_"*9)+("_"*9).join(pipes)
-    for i in range(len(c)): print "{:3}{}".format(str(i), "*"*int(round(c[i]*100 ,0)))
+    print((" "*12)+(" "*8).join(labels))
+    print((" "*3)+("_"*9)+("_"*9).join(pipes))
+    for i in range(len(c)): print("{:3}{}".format(str(i), "*"*int(round(c[i]*100 ,0))))
 
 def pprint_b(*outcomes): 
     """battle summary"""
     mad = sum([x[1]  for x in outcomes if x[0] == (0, 0)]) #its only one now... ridiculous to have a for...
     a1w = sum([x[1]  for x in outcomes if x[0][0] != 0])#excludes mutual destruction 
     a2w = sum([x[1]  for x in outcomes if x[0][1] != 0])
-    print "{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("10", "20", "30", "40", "50", "60", "70", "80", "90")
-    print "{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("|", "|", "|", "|", "|", "|", "|", "|", "|")
-    print "{}{}{}".format("o"*int(round(a1w*100)), "-"*int(round(mad*100)), "x"*int(round(a2w*100)))
-    print "attacker wins {}".format(str(round(a1w*100, 1)))
-    print "defender wins {}, survives {} (wins but loses all {})".format(str(round((a2w+mad)*100, 1)), str(round(a2w*100,1)), str(round(mad*100, 1)))
+    print("{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("10", "20", "30", "40", "50", "60", "70", "80", "90"))
+    print("{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("|", "|", "|", "|", "|", "|", "|", "|", "|"))
+    print("{}{}{}".format("o"*int(round(a1w*100)), "-"*int(round(mad*100)), "x"*int(round(a2w*100))))
+    print("attacker wins {}".format(str(round(a1w*100, 1))))
+    print("defender wins {}, survives {} (wins but loses all {})".format(str(round((a2w+mad)*100, 1)), str(round(a2w*100,1)), str(round(mad*100, 1))))
 
 def pprint_c(*outcomes):
     """print casualties of winner"""
@@ -215,18 +215,18 @@ def pprint_c(*outcomes):
     a2w = [x for x in outcomes if x[0][1] != 0] 
     totala1 = sum([x[1] for x in a1w])
     totala2 = sum([x[1] for x in a2w])
-    print "attacker casualties when victorious:"
+    print("attacker casualties when victorious:")
     pprint_a(*[x[1]/totala1 for x in reversed(sorted(a1w))])
-    print
-    print "defender casualties when victorious (and survives):"
+    print()
+    print("defender casualties when victorious (and survives):")
     pprint_a(*[x[1]/totala2 for x in reversed(sorted(a2w))])
 
 def pprint_d(*deltas):
     """print delta in probability curve"""
     margin = int(round(abs(min(deltas))*100))
     for i in range(len(deltas)):
-        if deltas[i] < 0: print str(i).ljust(3)+("*"*int(round(abs(deltas[i])*100))).rjust(margin)
-        else: print "{:3}{}".format(str(i), (" "*margin)+("*"*int(round(abs(deltas[i])*100))))
+        if deltas[i] < 0: print(str(i).ljust(3)+("*"*int(round(abs(deltas[i])*100))).rjust(margin))
+        else: print("{:3}{}".format(str(i), (" "*margin)+("*"*int(round(abs(deltas[i])*100)))))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -d 5 2 -d 3 3 for five twos and three threes")
@@ -261,5 +261,5 @@ if __name__ == "__main__":
         outcomes = sim_or_calc(n, m, a1, a2)
         pprint_b(*outcomes)
         if args.casualties:
-            print
+            print()
             pprint_c(*outcomes)
