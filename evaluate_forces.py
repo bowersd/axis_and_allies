@@ -228,14 +228,16 @@ def pprint_d(*deltas):
         if deltas[i] < 0: print(str(i).ljust(3)+("*"*int(round(abs(deltas[i])*100))).rjust(margin))
         else: print("{:3}{}".format(str(i), (" "*margin)+("*"*int(round(abs(deltas[i])*100)))))
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-d', '--defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -d 5 2 -d 3 3 for five twos and three threes")
-parser.add_argument('-a', '--attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -a 5 2 -a 3 3 for five twos and three threes")
-parser.add_argument('-c', '--casualties', action="store_true", help="whether to show casualties")
-parser.add_argument('-aa', '--anti_aircraft', nargs=2, action='append', help="pairs of number of units, hit value (targets of anti-aircraft). as in -aa 1 3 -aa 2 4 for one fighter and two bombers")
-parser.add_argument('-b', '--bombardment', nargs=2, action='append', help="pairs of number of units, hit value. as in -b 1 4 for one bombarding battleship")
-parser.add_argument('-sa', '--submarines_attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -sa 1 2 for one attacking sub (no opposing destroyer present)")
-parser.add_argument('-sd', '--submarines_defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -sd 1 2 for one defending sub (no opposing destroyer present)")
+def arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -d 5 2 -d 3 3 for five twos and three threes")
+    parser.add_argument('-a', '--attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -a 5 2 -a 3 3 for five twos and three threes")
+    parser.add_argument('-c', '--casualties', action="store_true", help="whether to show casualties")
+    parser.add_argument('-aa', '--anti_aircraft', nargs=2, action='append', help="pairs of number of units, hit value (targets of anti-aircraft). as in -aa 1 3 -aa 2 4 for one fighter and two bombers")
+    parser.add_argument('-b', '--bombardment', nargs=2, action='append', help="pairs of number of units, hit value. as in -b 1 4 for one bombarding battleship")
+    parser.add_argument('-sa', '--submarines_attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -sa 1 2 for one attacking sub (no opposing destroyer present)")
+    parser.add_argument('-sd', '--submarines_defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -sd 1 2 for one defending sub (no opposing destroyer present)")
+    return parser
 
 def sim_or_calc(n, m, a1, a2):
     if n > 7 and m > 7:
@@ -245,7 +247,7 @@ def sim_or_calc(n, m, a1, a2):
     return outcomes
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    args = arg_parser().parse_args()
     if (args.defender and not args.attacker) :
         pprint_a(*binomial_joint(*[(int(x[0]), int(x[1])/float(6)) for x in args.defender]))
     elif (args.attacker and not args.defender):
