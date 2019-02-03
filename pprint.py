@@ -19,7 +19,7 @@ def pprint_b(*outcomes):
     a1w = sum([x[1]  for x in outcomes if x[0][0] != 0])#excludes mutual destruction 
     a2w = sum([x[1]  for x in outcomes if x[0][1] != 0])
     print("{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("10", "20", "30", "40", "50", "60", "70", "80", "90"))
-    print("{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("|", "|", "|", "|", "|", "|", "|", "|", "|"))
+    print("{:>10}{:>10}{:>10}{:>10}{:>11}{:>9}{:>10}{:>10}{:>10}".format("|", "|", "|", "|", ">|<", "|", "|", "|", "|"))
     print("{}{}{}".format("o"*int(round(a1w*100)), "-"*int(round(mad*100)), "x"*int(round(a2w*100))))
     print("attacker wins {}".format(str(round(a1w*100, 1))))
     print("defender wins {}, survives {} (wins but loses all {})".format(str(round((a2w+mad)*100, 1)), str(round(a2w*100,1)), str(round(mad*100, 1))))
