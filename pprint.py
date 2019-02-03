@@ -1,3 +1,7 @@
+import argparse
+import probability as prb
+import evaluate_forces as ef
+
 def pprint_a(*c): 
     """print the joint binomial curve of an army"""
     print("mode: {} ({}%)".format(prb.find_mode(*c), round(prb.mode_value(*c)*100, 1)))
@@ -65,7 +69,7 @@ if __name__ == "__main__":
         a1 = [adict[i] if i in adict else 0 for i in range(6)]
         a2 = [ddict[i] if i in ddict else 0 for i in range(6)]
         n, m = sum(a1), sum(a2)
-        outcomes = sim_or_calc(n, m, a1, a2)
+        outcomes = ef.sim_or_calc(n, m, a1, a2)
         pprint_b(*outcomes)
         if args.casualties:
             print()
