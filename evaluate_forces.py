@@ -1,4 +1,5 @@
 import probability as prb
+import pprint
 import math
 import random
 import itertools as it
@@ -125,58 +126,6 @@ def simulate(grid, trans, cap):
         paths += 1
     return [(x, h[x]/float(paths)) for x in h]
 
-def pprint_a(*c): 
-    """print the joint binomial curve of an army"""
-    print("mode: {} ({}%)".format(prb.find_mode(*c), round(prb.mode_value(*c)*100, 1)))
-    print("mean: {}".format(round(prb.find_mean(*c), 2)))
-    top = int(round(max(*c)*10, 0))
-    labels = [str(i*10) for i in range(1, top+1)]
-    pipes = ["|" for i in range(top)]
-    print((" "*12)+(" "*8).join(labels))
-    print((" "*3)+("_"*9)+("_"*9).join(pipes))
-    for i in range(len(c)): print("{:3}{}".format(str(i), "*"*int(round(c[i]*100 ,0))))
-
-def pprint_b(*outcomes): 
-    """battle summary"""
-    mad = sum([x[1]  for x in outcomes if x[0] == (0, 0)]) #its only one now... ridiculous to have a for...
-    a1w = sum([x[1]  for x in outcomes if x[0][0] != 0])#excludes mutual destruction 
-    a2w = sum([x[1]  for x in outcomes if x[0][1] != 0])
-    print("{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("10", "20", "30", "40", "50", "60", "70", "80", "90"))
-    print("{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}{:>10}".format("|", "|", "|", "|", "|", "|", "|", "|", "|"))
-    print("{}{}{}".format("o"*int(round(a1w*100)), "-"*int(round(mad*100)), "x"*int(round(a2w*100))))
-    print("attacker wins {}".format(str(round(a1w*100, 1))))
-    print("defender wins {}, survives {} (wins but loses all {})".format(str(round((a2w+mad)*100, 1)), str(round(a2w*100,1)), str(round(mad*100, 1))))
-
-def pprint_c(*outcomes):
-    """print casualties of winner"""
-    a1w = [x for x in outcomes if x[0][0] != 0] #excludes mutual destruction
-    a2w = [x for x in outcomes if x[0][1] != 0] 
-    totala1 = sum([x[1] for x in a1w])
-    totala2 = sum([x[1] for x in a2w])
-    print("attacker casualties when victorious:")
-    pprint_a(*[x[1]/totala1 for x in reversed(sorted(a1w))])
-    print()
-    print("defender casualties when victorious (and survives):")
-    pprint_a(*[x[1]/totala2 for x in reversed(sorted(a2w))])
-
-def pprint_d(*deltas):
-    """print delta in probability curve"""
-    margin = int(round(abs(min(deltas))*100))
-    for i in range(len(deltas)):
-        if deltas[i] < 0: print(str(i).ljust(3)+("*"*int(round(abs(deltas[i])*100))).rjust(margin))
-        else: print("{:3}{}".format(str(i), (" "*margin)+("*"*int(round(abs(deltas[i])*100)))))
-
-def arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -d 5 2 -d 3 3 for five twos and three threes")
-    parser.add_argument('-a', '--attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -a 5 2 -a 3 3 for five twos and three threes")
-    parser.add_argument('-c', '--casualties', action="store_true", help="whether to show casualties")
-    parser.add_argument('-aa', '--anti_aircraft', nargs=2, action='append', help="pairs of number of units, hit value (targets of anti-aircraft). as in -aa 1 3 -aa 2 4 for one fighter and two bombers")
-    parser.add_argument('-b', '--bombardment', nargs=2, action='append', help="pairs of number of units, hit value. as in -b 1 4 for one bombarding battleship")
-    parser.add_argument('-sa', '--submarines_attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -sa 1 2 for one attacking sub (no opposing destroyer present)")
-    parser.add_argument('-sd', '--submarines_defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -sd 1 2 for one defending sub (no opposing destroyer present)")
-    return parser
-
 def sim_or_calc(n, m, a1, a2):
     if n > 7 and m > 7:
         outcomes = simulate(make_grid(n, m), weight_transitions(a1, a2, make_transitions(n, m)), 10000)
@@ -184,22 +133,48 @@ def sim_or_calc(n, m, a1, a2):
         outcomes = start_pct(make_grid(n, m), weight_transitions(a1, a2, make_transitions(n, m)))
     return outcomes
 
+####
+#opening fire - under construction
+####
+
+    #bombardment: you can just do prb.a_minus(target) for each of the cells; weight the outcomes by probability of attrition
+    #sneak attacks: the submarines stay in the fight after one round, but they can only be casualties in the immediate post-opening round
+    #aa: non a_minus() subtractions (bomber may go down even if a fighter is present fighter) -> this can be handled by setting up 2 opening fire rounds, one for fighters, one for bombers
+
+#assumed: pre-processing of units into appropriate targets, signal for opening fire
+#   presumably armies could be broken into sub-armies according to what they target/the enemy targets, and casualties could be calculated on those sub-armies before subtracting point-wise from the overall army.
+#produce distribution of outcomes for one round
+#calculate remainder of battle for each outcome (adjusting original armies accordingly)
+#weight each battle outcome by prior distribution
+#sum all weighted battle outcomes
+
+def casualties_prior(openers):
+    p = prb.binomial_joint(*[(shooters[i], i/float(6)) for i in range(len(shooters))]) #potential for dealing damage...odd mixing of hard-coding (6) and calculating (getting number of slots on die)
+    return {i:p[i] for i in range(sum(shooters)+1)}
+
+def embedded_battle(prior, base1, base2): #openers1/2, core1/2
+    #2 or  more, use a for... 
+    h = []
+    for i in range(len(prior)): #could just use the len as an arg, but staying flexible in case more complex situations require the distros to be used here
+        alt2 = a_minus(i, *base2)
+        n, m = sum(base1), sum(alt2) #in current version, n could be calculated outside of the loop, but it will eventually have to be moved in
+        h.append(sim_or_calc(n, m, base1, alt2))
+    return h
+
+
+def weight_outcomes(prior, *outcomes):
+    h = {} #working around unchecked assumption that all outcomes are in the same order in each list...
+    #h = [0]*max([len(x for x in outcomes)])
+    for x in outcomes: print x
+    for i in range(len(prior)):
+        for x in outcomes[i]:
+            print x
+            if x[0] not in h: h[x[0]]= x[1]*prior[i]
+            else: h[x[0]] += x[1]*prior[i]
+    return [(x, h[x]) for x in h]
+
 if __name__ == "__main__":
-    args = arg_parser().parse_args()
-    if (args.defender and not args.attacker) :
-        pprint_a(*prb.binomial_joint(*[(int(x[0]), int(x[1])/float(6)) for x in args.defender]))
-    elif (args.attacker and not args.defender):
-        pprint_a(*prb.binomial_joint(*[(int(x[0]), int(x[1])/float(6)) for x in args.attacker]))
-    else:
-        #unordered representation for user input
-        adict = {int(x[1]):int(x[0]) for x in args.attacker}
-        ddict = {int(x[1]):int(x[0]) for x in args.defender}
-        #ordered for machine
-        a1 = [adict[i] if i in adict else 0 for i in range(6)]
-        a2 = [ddict[i] if i in ddict else 0 for i in range(6)]
-        n, m = sum(a1), sum(a2)
-        outcomes = sim_or_calc(n, m, a1, a2)
-        pprint_b(*outcomes)
-        if args.casualties:
-            print()
-            pprint_c(*outcomes)
+    open1 = [0,0,0,0,1,0]
+    opener_prior = prb.binomial_joint(*[(open1[i], i/float(len(open1))) for i in range(len(open1))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    pprint.pprint_b(*weight_outcomes(opener_prior, *embedded_battle(opener_prior, [0,2,0,0,0,0], [0,0,2,0,0,0])))
+
