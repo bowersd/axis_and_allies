@@ -165,10 +165,10 @@ def embedded_battle(prior, base1, base2): #openers1/2, core1/2
 def weight_outcomes(prior, *outcomes):
     h = {} #working around unchecked assumption that all outcomes are in the same order in each list...
     #h = [0]*max([len(x for x in outcomes)])
-    for x in outcomes: print x
+    #for x in outcomes: print(x)
     for i in range(len(prior)):
         for x in outcomes[i]:
-            print x
+            #print(x)
             if x[0] not in h: h[x[0]]= x[1]*prior[i]
             else: h[x[0]] += x[1]*prior[i]
     return [(x, h[x]) for x in h]
