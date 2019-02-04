@@ -12,7 +12,7 @@ import itertools as it
 
 def a_minus(n, *v):
     """deplete v (an army) from left to right (->0) until n is exhausted"""
-    #this assumes that the least probable hitters are removed first ... not necessarily valid (bombers may be preserved on defense
+    #this assumes that the least probable hitters are removed first ... not necessarily valid (bombers may be preserved on defense)
     h = []
     pos = 0
     while n and pos < len(v):
