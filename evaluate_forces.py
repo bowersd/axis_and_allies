@@ -1,11 +1,7 @@
 import probability as prb
 import pprint
-import math
 import random
 import itertools as it
-from functools import reduce
-import operator
-import argparse
 
 #todo: opening fire, expected value of strategic bombing raid against risk, sub withdrawal, 
 #sub/plane individuation:
