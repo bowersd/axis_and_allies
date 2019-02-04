@@ -27,6 +27,9 @@ def a_minus(n, *v):
     h += v[pos:]
     return h
 
+def losses(depleted, full):
+    return [full[i]-depleted[i] for i in range(len(full))]
+
 def make_grid(n, m):
     """nxm array with labeled coordinates ... pretty superfluous"""
     return [[(i,j) for j in range(m+1)] for i in range(n+1)]
