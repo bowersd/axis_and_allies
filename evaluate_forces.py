@@ -135,7 +135,9 @@ def sim_or_calc(n, m, a1, a2):
 
     #bombardment: you can just do prb.a_minus(target) for each of the cells; weight the outcomes by probability of attrition
     #sneak attacks: the submarines stay in the fight after one round, but they can only be casualties in the immediate post-opening round
-    #aa: non a_minus() subtractions (bomber may go down even if a fighter is present fighter) -> this can be handled by setting up 2 opening fire rounds, one for fighters, one for bombers
+    #aa: non a_minus() subtractions (bomber may go down even if a fighter is present) -> this can be handled by setting up 2 opening fire rounds, one for fighters, one for bombers
+
+#armies could actually be represented as lists containing two lists, one for opening fire, one for later.
 
 #assumed: pre-processing of units into appropriate targets, signal for opening fire
 #   presumably armies could be broken into sub-armies according to what they target/the enemy targets, and casualties could be calculated on those sub-armies before subtracting point-wise from the overall army.
@@ -169,7 +171,7 @@ if __name__ == "__main__":
     open1 = [0,0,0,0,1,0]
     open2 = [0,3,0,0,0,0]
     open1probs = prb.binomial_joint(*[(open1[i], i/float(len(open1))) for i in range(len(open1))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
-    open2probs = prb.binomial_joint(*[(open2[i], i/float(len(open2))) for i in range(len(open2))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    open2probs = prb.binomial_joint(*[(open2[i], i/float(len(open2))) for i in range(len(open2))]) 
     pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product(range(len(open1probs)), range(len(open2probs))), [0,2,0,2,1,0], [0,0,2,0,0,0])))
     pprint.pprint_c(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product(range(len(open1probs)), range(len(open2probs))), [0,2,0,2,1,0], [0,0,2,0,0,0])))
 
