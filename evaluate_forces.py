@@ -144,8 +144,8 @@ def sim_or_calc(n, m, a1, a2):
 #weight each battle outcome by prior distribution
 #sum all weighted battle outcomes
 
-def embedded_battle(prior, base1, base2): #openers1/2, core1/2
-    #2 or  more, use a for... 
+def embedded_battle(prior1, base1, base2): #openers1/2, core1/2
+    #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
     h = []
     for i in range(len(prior)): #could just use the len as an arg, but staying flexible in case more complex situations require the distros to be used here
         alt2 = a_minus(i, *base2)
