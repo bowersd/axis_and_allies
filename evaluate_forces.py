@@ -144,10 +144,6 @@ def sim_or_calc(n, m, a1, a2):
 #weight each battle outcome by prior distribution
 #sum all weighted battle outcomes
 
-def casualties_prior(openers):
-    p = prb.binomial_joint(*[(shooters[i], i/float(6)) for i in range(len(shooters))]) #potential for dealing damage...odd mixing of hard-coding (6) and calculating (getting number of slots on die)
-    return {i:p[i] for i in range(sum(shooters)+1)}
-
 def embedded_battle(prior, base1, base2): #openers1/2, core1/2
     #2 or  more, use a for... 
     h = []
