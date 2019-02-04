@@ -72,11 +72,11 @@ if __name__ == "__main__":
         n, m = sum(a1), sum(a2)
         if args.bombardment:
             #ordering the unordered in one unreadable step
-            prior1 = [int(x[0]) if i in [int(x[1]) for x in args.bombardment] else 0 for i in range(6)]
-            prior2 = [0]*6
+            prior1 = ([int(x[0]) if i in [int(x[1]) for x in args.bombardment] else 0 for i in range(6)], a2)
+            prior2 = ([0]*6, a1)
             prior1probs = prb.binomial_joint(*[(prior1[i], i/float(len(prior1))) for i in range(len(prior1))])
             prior2probs = prb.binomial_joint(*[(prior2[i], i/float(len(prior2))) for i in range(len(prior2))])
-            pprint_b(*ef.weight_outcomes(prior1probs, prior2probs, *ef.embedded_battle(it.product(range(len(prior1probs)), range(len(prior2probs), a1, a2)))
+            pprint_b(*ef.weight_outcomes(prior1probs, prior2probs, *ef.embedded_battle(it.product([(i, prior1[1]) for i in range(len(prior1probs))], [(i, prior2[1]) for i in range(len(prior2probs))]), a1, a2)))
         else:
             outcomes = ef.sim_or_calc(n, m, a1, a2)
             pprint_b(*outcomes)

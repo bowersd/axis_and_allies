@@ -152,11 +152,10 @@ def sim_or_calc(n, m, a1, a2):
 def embedded_battle(prior_iter, a1, a2): #openers1/2, core1/2
     #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
     h = []
-    for p in prior_iter: #tuples of prior casualties for base1, base2
-        alt1, alt2 = a_minus(p[1], *a1), a_minus(p[0], *a2)
+    for p in prior_iter: #tuples of (prior casualties inflicted, [vector of targets]) for a1, a2
+        alt1, alt2 = losses(losses(a_minus(p[1][0], *p[1][1]), p[1][1]), a1), losses(losses(a_minus(p[0][0], *p[0][1]), p[0][1]), a2)
         h.append(sim_or_calc(sum(alt1), sum(alt2), alt1, alt2))
     return h
-
 
 def weight_outcomes(prior1, prior2, *outcomes):
     h = {} #working around unchecked assumption that all outcomes are in the same order in each list...
@@ -171,10 +170,12 @@ def weight_outcomes(prior1, prior2, *outcomes):
     return [(x, h[x]) for x in h]
 
 if __name__ == "__main__":
-    open1 = [0,0,0,0,1,0]
-    open2 = [0,3,0,0,0,0]
-    open1probs = prb.binomial_joint(*[(open1[i], i/float(len(open1))) for i in range(len(open1))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
-    open2probs = prb.binomial_joint(*[(open2[i], i/float(len(open2))) for i in range(len(open2))]) 
-    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product(range(len(open1probs)), range(len(open2probs))), [0,2,0,2,1,0], [0,0,2,0,0,0])))
-    pprint.pprint_c(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product(range(len(open1probs)), range(len(open2probs))), [0,2,0,2,1,0], [0,0,2,0,0,0])))
+    a1 = [0,2,0,2,1,0]
+    a2 = [0,0,2,0,0,0]
+    open1 = ([0,0,0,0,1,0], a2)
+    open2 = ([0,3,0,0,0,0], [0,0,0,2,1,0])
+    open1probs = prb.binomial_joint(*[(open1[0][i], i/float(len(open1[0]))) for i in range(len(open1[0]))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    open2probs = prb.binomial_joint(*[(open2[0][i], i/float(len(open2[0]))) for i in range(len(open2[0]))]) 
+    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product([(i, open1[1]) for i in range(len(open1probs))], [(i, open2[1]) for i in range(len(open2probs))]), a1, a2)))
+    pprint.pprint_c(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product([(i, open1[1]) for i in range(len(open1probs))], [(i, open2[1]) for i in range(len(open2probs))]), a1, a2)))
 
