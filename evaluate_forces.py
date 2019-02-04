@@ -144,33 +144,32 @@ def sim_or_calc(n, m, a1, a2):
 #weight each battle outcome by prior distribution
 #sum all weighted battle outcomes
 
-#def embedded_battle(prior1, prior2, base1, base2): #openers1/2, core1/2
-def embedded_battle(prior, base1, base2): #openers1/2, core1/2
+def embedded_battle(prior_iter, a1, a2): #openers1/2, core1/2
     #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
     h = []
-#    ps = it.product(range(len(prior1)), range(len(prior2)))
-#    for p in ps:
-#        alt1, alt2 = a_minus(p[1], *base1), a_minus(p[0], *base2)
-    for i in range(len(prior)): #could just use the len as an arg, but staying flexible in case more complex situations require the distros to be used here
-        alt2 = a_minus(i, *base2)
-        n, m = sum(base1), sum(alt2) #in current version, n could be calculated outside of the loop, but it will eventually have to be moved in
-        h.append(sim_or_calc(n, m, base1, alt2))
+    for p in prior_iter: #tuples of prior casualties for base1, base2
+        alt1, alt2 = a_minus(p[1], *a1), a_minus(p[0], *a2)
+        h.append(sim_or_calc(sum(alt1), sum(alt2), alt1, alt2))
     return h
 
 
-def weight_outcomes(prior, *outcomes):
+def weight_outcomes(prior1, prior2, *outcomes):
     h = {} #working around unchecked assumption that all outcomes are in the same order in each list...
     #h = [0]*max([len(x for x in outcomes)])
-    #for x in outcomes: print(x)
-    for i in range(len(prior)):
+    d = it.product(range(len(prior1)), range(len(prior2))) #full distribution
+    i = 0
+    for j, k in d:
         for x in outcomes[i]:
-            #print(x)
-            if x[0] not in h: h[x[0]]= x[1]*prior[i]
-            else: h[x[0]] += x[1]*prior[i]
+            if x[0] not in h: h[x[0]]= x[1]*prior1[j]*prior2[k]
+            else: h[x[0]] += x[1]*prior1[j]*prior2[k]
+        i += 1
     return [(x, h[x]) for x in h]
 
 if __name__ == "__main__":
     open1 = [0,0,0,0,1,0]
-    opener_prior = prb.binomial_joint(*[(open1[i], i/float(len(open1))) for i in range(len(open1))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
-    pprint.pprint_b(*weight_outcomes(opener_prior, *embedded_battle(opener_prior, [0,2,0,0,0,0], [0,0,2,0,0,0])))
+    open2 = [0,3,0,0,0,0]
+    open1probs = prb.binomial_joint(*[(open1[i], i/float(len(open1))) for i in range(len(open1))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    open2probs = prb.binomial_joint(*[(open2[i], i/float(len(open2))) for i in range(len(open2))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product(range(len(open1probs)), range(len(open2probs))), [0,2,0,2,1,0], [0,0,2,0,0,0])))
+    pprint.pprint_c(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product(range(len(open1probs)), range(len(open2probs))), [0,2,0,2,1,0], [0,0,2,0,0,0])))
 
