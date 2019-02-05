@@ -152,24 +152,30 @@ def sim_or_calc(n, m, a1, a2):
 def embedded_battle(prior_outcomes1, prior_outcomes2, a1, a2): #openers1/2, core1/2
     #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
     h = []
-    for p in it.product(prior_outcomes1): #tuples of (prior casualties inflicted, [vector of targets]) for a1
-        alt1 = a1
-        for x in p: alt1 = losses(losses(a_minus(x[0], *x[1]), x[1]), alt1) #figure out how the targets have been depleted, then remove that much from the overall targeted army
-        for q in it.product(prior_outcomes2):
-            alt2 = a2
-            for y in q: alt2 = losses(losses(a_minus(y[0], *y[1]), y[1]), alt2)
+    for p in it.product(*prior_outcomes1): #tuples of (prior casualties inflicted, [vector of targets]) for a1
+        alt2 = [x for x in a2]
+        for x in p: alt2 = losses(losses(a_minus(x[0], *x[1]), x[1]), alt2) #figure out how the targets have been depleted, then remove that much from the overall targeted army
+        for q in it.product(*prior_outcomes2): #these could come precompiled as arguments...
+            alt1 = [x for x in a1]
+            print q
+            for y in q: 
+                print y
+                print alt1
+                print "---"
+                alt1 = losses(losses(a_minus(y[0], *y[1]), y[1]), alt1)
             h.append(sim_or_calc(sum(alt1), sum(alt2), alt1, alt2))
     return h
 
-def weight_outcomes(prior1, prior2, *outcomes):
+def weight_outcomes(prior_probs1, prior_probs2, *outcomes):
     h = {} #working around unchecked assumption that all outcomes are in the same order in each list...
     #h = [0]*max([len(x for x in outcomes)])
-    d = it.product(range(len(prior1)), range(len(prior2))) #full distribution
+    #d = it.product(range(len(prior_probs1)), range(len(prior_probs2))) #full distribution
     i = 0
-    for j, k in d:
-        for x in outcomes[i]:
-            if x[0] not in h: h[x[0]]= x[1]*prior1[j]*prior2[k]
-            else: h[x[0]] += x[1]*prior1[j]*prior2[k]
+    for p in it.product(*prior_probs1):
+        for q in it.product(*prior_probs2):
+            for x in outcomes[i]:
+                if x[0] not in h: h[x[0]]= prb.product(*((x[1],)+q+p))
+                else: h[x[0]] += prb.product(*((x[1],)+q+p))
         i += 1
     return [(x, h[x]) for x in h]
 
@@ -178,11 +184,12 @@ if __name__ == "__main__":
     a2 = [0,0,2,0,0,0]
     a1fig = [0,0,0,2,0,0]
     a1bom = [0,0,0,0,1,0]
-    open1 = ([0,0,0,0,0,0], a2)
+    open1 = ([0,0,0,0,1,0], a2)
     open2 = ([0,sum(a1fig),0,0,0,0], a1fig)
     open2b = ([0,sum(a1bom),0,0,0,0], a1bom)
-    open1probs = prb.binomial_joint(*[(open1[0][i], i/float(len(open1[0]))) for i in range(len(open1[0]))]) #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
-    open2probs = prb.binomial_joint(*[(open2[0][i], i/float(len(open2[0]))) for i in range(len(open2[0]))]) 
-    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product([(i, open1[1]) for i in range(len(open1probs))], [(i, open2[1]) for i in range(len(open2probs))]), a1, a2)))
-    pprint.pprint_c(*weight_outcomes(open1probs, open2probs, *embedded_battle(it.product([(i, open1[1]) for i in range(len(open1probs))], [(i, open2[1]) for i in range(len(open2probs))]), a1, a2)))
+    open1probs = [prb.binomial_joint(*[(open1[0][i], i/float(len(open1[0]))) for i in range(len(open1[0]))])] #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    open2probs = [prb.binomial_joint(*[(open2[0][i], i/float(len(open2[0]))) for i in range(len(open2[0]))]), prb.binomial_joint(*[(open2b[0][i], i/float(len(open2b[0]))) for i in range(len(open2b[0]))])]
+    print open1probs
+    print open2probs
+    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle([[(i, open1[1]) for i in range(len(open1probs))]], [[(i, open2[1]) for i in range(len(open2probs))], [(i, open2b[1]) for i in range(len(open2probs))]], a1, a2)))
 
