@@ -174,6 +174,8 @@ def weight_outcomes(prior_probs1, prior_probs2, *outcomes):
     for p in it.product(*prior_probs1):
         for q in it.product(*prior_probs2):
             for x in outcomes[i]:
+                print p
+                print q
                 if x[0] not in h: h[x[0]]= prb.product(*((x[1],)+q+p))
                 else: h[x[0]] += prb.product(*((x[1],)+q+p))
         i += 1
@@ -187,9 +189,17 @@ if __name__ == "__main__":
     open1 = ([0,0,0,0,1,0], a2)
     open2 = ([0,sum(a1fig),0,0,0,0], a1fig)
     open2b = ([0,sum(a1bom),0,0,0,0], a1bom)
-    open1probs = [prb.binomial_joint(*[(open1[0][i], i/float(len(open1[0]))) for i in range(len(open1[0]))])] #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
-    open2probs = [prb.binomial_joint(*[(open2[0][i], i/float(len(open2[0]))) for i in range(len(open2[0]))]), prb.binomial_joint(*[(open2b[0][i], i/float(len(open2b[0]))) for i in range(len(open2b[0]))])]
+    open1probs = [
+            prb.binomial_joint(*[(open1[0][i], i/float(len(open1[0]))) \
+                for i in range(len(open1[0]))])
+            ] #allows fully general number of die faces. technically, we never have mixed probabilities in opening fire, but since it is not known ahead of time, it is easier to use binomial_joint() degeneratively
+    open2probs = [
+            prb.binomial_joint(*[(open2[0][i], i/float(len(open2[0]))) \
+                    for i in range(len(open2[0]))]), 
+            prb.binomial_joint(*[(open2b[0][i], i/float(len(open2b[0]))) \
+                for i in range(len(open2b[0]))])
+            ]
     print open1probs
     print open2probs
-    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle([[(i, open1[1]) for i in range(len(open1probs))]], [[(i, open2[1]) for i in range(len(open2probs))], [(i, open2b[1]) for i in range(len(open2probs))]], a1, a2)))
+    pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle([[(i, open1[1]) for i in range(len(open1probs[0]))]], [[(i, open2[1]) for i in range(len(open2probs[0]))], [(i, open2b[1]) for i in range(len(open2probs[1]))]], a1, a2)))
 
