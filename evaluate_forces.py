@@ -27,9 +27,8 @@ def a_minus(n, *v):
     h += v[pos:]
     return h
 
-def losses(*depleted_full):
-    return [[x[1][i]-x[0][i] for i in range(len(x[1][i]))] for x in depleted_full]
-    #return [full[i]-depleted[i] for i in range(len(full))]
+def losses(depleted, full):
+    return [full[i]-depleted[i] for i in range(len(full))]
 
 def make_grid(n, m):
     """nxm array with labeled coordinates ... pretty superfluous"""
@@ -150,13 +149,16 @@ def sim_or_calc(n, m, a1, a2):
 #weight each battle outcome by prior distribution
 #sum all weighted battle outcomes
 
-def embedded_battle(prior1, prior2, a1, a2): #openers1/2, core1/2
+def embedded_battle(prior_outcomes1, prior_outcomes2, a1, a2): #openers1/2, core1/2
     #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
     h = []
-    for p in it.product(prior1): #tuples of (prior casualties inflicted, [vector of targets]) for a1
-        alt1 = losses(losses(a_minus(p[1][0], *p[1][1]), p[1][1]), a1) 
-        alt2 = losses(losses(a_minus(p[0][0], *p[0][1]), p[0][1]), a2)
-        h.append(sim_or_calc(sum(alt1), sum(alt2), alt1, alt2))
+    for p in it.product(prior_outcomes1): #tuples of (prior casualties inflicted, [vector of targets]) for a1
+        alt1 = a1
+        for x in p: alt1 = losses(losses(a_minus(x[0], *x[1]), x[1]), alt1) #figure out how the targets have been depleted, then remove that much from the overall targeted army
+        for q in it.product(prior_outcomes2):
+            alt2 = a2
+            for y in q: alt2 = losses(losses(a_minus(y[0], *y[1]), y[1]), alt2)
+            h.append(sim_or_calc(sum(alt1), sum(alt2), alt1, alt2))
     return h
 
 def weight_outcomes(prior1, prior2, *outcomes):
