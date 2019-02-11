@@ -154,15 +154,15 @@ def embedded_battle(prior_outcomes1, prior_outcomes2, a1, a2): #openers1/2, core
     h = []
     for p in it.product(*prior_outcomes1): #tuples of (prior casualties inflicted, [vector of targets]) for a1
         alt2 = [x for x in a2]
-        for x in p: alt2 = losses(losses(a_minus(x[0], *x[1]), x[1]), alt2) #figure out how the targets have been depleted, then remove that much from the overall targeted army
+        #print p
+        for x in p: 
+            alt2 = losses(losses(a_minus(x[0], *x[1]), x[1]), alt2) #figure out how the targets have been depleted, then remove that much from the overall targeted army
         for q in it.product(*prior_outcomes2): #these could come precompiled as arguments...
-            alt1 = [x for x in a1]
-            print q
-            for y in q: 
-                print y
-                print alt1
-                print "---"
-                alt1 = losses(losses(a_minus(y[0], *y[1]), y[1]), alt1)
+            alt1 = [z for z in a1]
+            for y in q: alt1 = losses(losses(a_minus(y[0], *y[1]), y[1]), alt1)
+            #print alt1
+            #print alt2
+            #print "---"
             h.append(sim_or_calc(sum(alt1), sum(alt2), alt1, alt2))
     return h
 
@@ -174,11 +174,9 @@ def weight_outcomes(prior_probs1, prior_probs2, *outcomes):
     for p in it.product(*prior_probs1):
         for q in it.product(*prior_probs2):
             for x in outcomes[i]:
-                print p
-                print q
                 if x[0] not in h: h[x[0]]= prb.product(*((x[1],)+q+p))
                 else: h[x[0]] += prb.product(*((x[1],)+q+p))
-        i += 1
+            i += 1
     return [(x, h[x]) for x in h]
 
 if __name__ == "__main__":
@@ -199,7 +197,5 @@ if __name__ == "__main__":
             prb.binomial_joint(*[(open2b[0][i], i/float(len(open2b[0]))) \
                 for i in range(len(open2b[0]))])
             ]
-    print open1probs
-    print open2probs
     pprint.pprint_b(*weight_outcomes(open1probs, open2probs, *embedded_battle([[(i, open1[1]) for i in range(len(open1probs[0]))]], [[(i, open2[1]) for i in range(len(open2probs[0]))], [(i, open2b[1]) for i in range(len(open2probs[1]))]], a1, a2)))
 
