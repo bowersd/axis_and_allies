@@ -49,7 +49,7 @@ def arg_parser():
     parser.add_argument('-d', '--defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -d 5 2 -d 3 3 for five twos and three threes")
     parser.add_argument('-a', '--attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -a 5 2 -a 3 3 for five twos and three threes")
     parser.add_argument('-c', '--casualties', action="store_true", help="whether to show casualties")
-    parser.add_argument('-aa', '--anti_aircraft', nargs=2, action='append', help="pairs of number of units, hit value (targets of anti-aircraft). as in -aa 1 3 -aa 2 4 for one fighter and two bombers")
+    parser.add_argument('-aa', '--anti_aircraft', nargs=2, action='append', help="pairs of number of units, hit value (targets of anti-aircraft). as in -aa 1 3 -aa 2 4 for one fighter and two bombers", default = [])
     parser.add_argument('-b', '--bombardment', nargs=2, action='append', help="pairs of number of units, hit value. as in -b 1 4 for one bombarding battleship")
     parser.add_argument('-sa', '--submarines_attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -sa 1 2 for one attacking sub (no opposing destroyer present)")
     parser.add_argument('-sd', '--submarines_defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -sd 1 2 for one defending sub (no opposing destroyer present)")
@@ -70,13 +70,20 @@ if __name__ == "__main__":
         a1 = [adict[i] if i in adict else 0 for i in range(6)]
         a2 = [ddict[i] if i in ddict else 0 for i in range(6)]
         n, m = sum(a1), sum(a2)
-        if args.bombardment:
+        if args.bombardment or args.anti_aircraft:
             #ordering the unordered in one unreadable step
-            prior1 = ([int(x[0]) if i in [int(x[1]) for x in args.bombardment] else 0 for i in range(6)], a2)
-            prior2 = ([0]*6, a1)
-            prior1probs = prb.binomial_joint(*[(prior1[i], i/float(len(prior1))) for i in range(len(prior1))])
-            prior2probs = prb.binomial_joint(*[(prior2[i], i/float(len(prior2))) for i in range(len(prior2))])
-            pprint_b(*ef.weight_outcomes(prior1probs, prior2probs, *ef.embedded_battle(it.product([(i, prior1[1]) for i in range(len(prior1probs))], [(i, prior2[1]) for i in range(len(prior2probs))]), a1, a2)))
+            prior1 = ([[int(x[0]) if i in [int(x[1]) for x in args.bombardment] else 0 for i in range(6)], a2],)
+            prior2 = []
+            for x in args.anti_aircraft: 
+                prior2.append([[0, int(x[0]), 0, 0, 0, 0], [int(x[0]) if i == int(x[1]) else 0 for i in range(6)]])
+            #else: prior2 = ([[0]*6, a1],)
+            prior1probs = [prb.binomial_joint(*[(x[0][i], i/float(len(x[0]))) for i in range(len(x[0]))]) for x in prior1]
+            prior2probs = [prb.binomial_joint(*[(x[0][i], i/float(len(x[0]))) for i in range(len(x[0]))]) for x in prior2]
+            prior1_outcomes = []
+            for i in range(len(prior1)): prior1_outcomes.append([(j, prior1[i][1]) for j in range(len(prior1probs[i]))])
+            prior2_outcomes = []
+            for i in range(len(prior2)): prior2_outcomes.append([(j, prior2[i][1]) for j in range(len(prior2probs[i]))])
+            pprint_b(*ef.weight_outcomes(prior1probs, prior2probs, *ef.embedded_battle(prior1_outcomes, prior2_outcomes, a1, a2)))
         else:
             outcomes = ef.sim_or_calc(n, m, a1, a2)
             pprint_b(*outcomes)
