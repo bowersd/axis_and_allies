@@ -148,6 +148,32 @@ def sim_or_calc(n, m, a1, a2):
 #calculate remainder of battle for each outcome (adjusting original armies accordingly)
 #weight each battle outcome by prior distribution
 #sum all weighted battle outcomes
+def units_subtract(a, *units):
+    nu = [x for x in a]
+    for u in units:
+        nu[u[1]] -= u[0]
+    return nu
+
+def subs_sneak_strike(subs_attack, subs_defend, planes_attack, planes_defend, a1, a2):
+    #sneak attack opposition but not the planes
+    attack_strike = [[[0 for i in range(6)], units_subtract(a2, planes_defend)]]
+    for x in subs_attack: attack_strike[0][0][x[1]] = x[0]
+    defend_strike = [[[0 for i in range(6)], units_subtract(a1, planes_attack)]]
+    for x in subs_defend: defend_strike[0][0][x[1]] = x[0]
+    attack_strike_probs = [prb.binomial_joint(*[(x[0][i], i/float(len(x[0]))) for i in range(len(x[0]))]) for x in attack_strike]
+    defend_strike_probs = [prb.binomial_joint(*[(x[0][i], i/float(len(x[0]))) for i in range(len(x[0]))]) for x in defend_strike]
+    attack_strike_outcomes = [] #[[casualties, suffering_army]...]
+    for i in range(len(attack_strike)): attack_strike_outcomes.append([(j, attack_strike[i][1]) for j in range(len(attack_strike_probs[i]))])
+    defend_strike_outcomes = []
+    for i in range(len(defend_strike)): defend_strike_outcomes.append([(j, defend_strike[i][1]) for j in range(len(defend_strike_probs[i]))])
+    #then everybody shoots except subs
+    #now things get nested ... in embedded battle, we have this:
+    #   [x_strikes_y, resulting_y] for all the damage x can do to y, and [y_strikes_x, resulting_x] ... then cross them
+    #here we need to track some back and forth. (prior outcomes are not independent of each other.)
+    #   for each (n, m) where n in strike(x_subs, Y<excluding y_planes>) and m in strike(y_subs, X<excluding x_planes>)
+    #       calculate Y-(n+p) and X-(m+q), for all values p in attack(X_reduced_by_Y_strike, Y), and all values of q calculated similarly for X getting attacked
+    #           probably easier to just reduce the fleets in place and assign a probability to that pairing squaring off after the first round than it is to hand it off to embedded_battle() to do the reductions
+    #       calculate Y-(n+p) and X-(m+q), for all values p in attack(X_reduced_by_Y_strike, Y), and all values of q calculated similarly for X getting attacked
 
 def embedded_battle(prior_outcomes1, prior_outcomes2, a1, a2): #openers1/2, core1/2
     #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
