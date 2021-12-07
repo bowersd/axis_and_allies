@@ -71,8 +71,10 @@ if __name__ == "__main__":
         a2 = [ddict[i] if i in ddict else 0 for i in range(6)]
         n, m = sum(a1), sum(a2)
         if args.bombardment or args.anti_aircraft:
-            #ordering the unordered in one unreadable step
-            prior1 = ([[int(x[0]) if i in [int(x[1]) for x in args.bombardment] else 0 for i in range(6)], a2],)
+            prior1 = [[[0 for i in range(6)],a2]]
+            for x in args.bombardment:
+                prior1[0][0][int(x[1])] = int(x[0])
+            #prior1 = ([[int(x[0]) if i in [int(x[1]) for x in args.bombardment] else 0 for i in range(6)], a2],)
             prior2 = []
             for x in args.anti_aircraft: 
                 prior2.append([[0, int(x[0]), 0, 0, 0, 0], [int(x[0]) if i == int(x[1]) else 0 for i in range(6)]])
