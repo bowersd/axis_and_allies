@@ -155,6 +155,10 @@ def units_subtract(a, *units):
     return nu
 
 def subs_sneak_strike(subs_attack, subs_defend, planes_attack, planes_defend, a1, a2):
+    attack_strike = [0 for i in range(6)]
+    for x in subs_attack: attack_strike[x[1]] = x[0]
+    prb.binomial_joint(*[(attack_strike[i], i/float(len(attack_strike]))) for i in range(len(attack_strike))])
+    ###below is overcomplicated salvage
     #sneak attack opposition but not the planes
     attack_strike = [[[0 for i in range(6)], units_subtract(a2, planes_defend)]]
     for x in subs_attack: attack_strike[0][0][x[1]] = x[0]
