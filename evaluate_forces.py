@@ -125,7 +125,7 @@ def simulate(grid, trans, cap):
         paths += 1
     return [(x, h[x]/float(paths)) for x in h]
 
-def sim_or_calc(n, m, a1, a2):
+def sim_or_calc(n, m, a1, a2): #n, m can be replaced with p = sum(n+m) (just have to change calls to this elsewhere)
     if n + m > 14:
         outcomes = simulate(make_grid(n, m), weight_transitions(a1, a2, make_transitions(n, m)), 10000)
     else:
@@ -137,7 +137,7 @@ def sim_or_calc(n, m, a1, a2):
 ####
 
     #bombardment: you can just do prb.a_minus(target) for each of the cells; weight the outcomes by probability of attrition
-    #sneak attacks: the submarines stay in the fight after one round, but they can only be casualties in the immediate post-opening round
+    #sneak attacks: the submarines stay in the fight, but don't shoot simultaneously with the others until round 2
     #aa: non a_minus() subtractions (bomber may go down even if a fighter is present) -> this can be handled by setting up 2 opening fire rounds, one for fighters, one for bombers
 
 #armies could actually be represented as lists containing two lists, one for opening fire, one for later.
@@ -148,36 +148,38 @@ def sim_or_calc(n, m, a1, a2):
 #calculate remainder of battle for each outcome (adjusting original armies accordingly)
 #weight each battle outcome by prior distribution
 #sum all weighted battle outcomes
-def units_subtract(a, *units):
-    nu = [x for x in a]
-    for u in units:
-        nu[u[1]] -= u[0]
-    return nu
 
-def subs_sneak_strike(subs_attack, subs_defend, planes_attack, planes_defend, a1, a2):
+def revive(excluded, core):
+    return [core[i]+excluded[i] for i in range(len(core))]
+
+def subs_sneak_strike(subs_attack, subs_defend, planes_attack, planes_defend, a1, a2): #this implements a lot of what is needed for fully accurate naval-air combat
     attack_strike = [0 for i in range(6)]
+    defend_strike = [0 for i in range(6)]
     for x in subs_attack: attack_strike[x[1]] = x[0]
-    prb.binomial_joint(*[(attack_strike[i], i/float(len(attack_strike]))) for i in range(len(attack_strike))])
-    ###below is overcomplicated salvage
-    #sneak attack opposition but not the planes
-    attack_strike = [[[0 for i in range(6)], units_subtract(a2, planes_defend)]]
-    for x in subs_attack: attack_strike[0][0][x[1]] = x[0]
-    defend_strike = [[[0 for i in range(6)], units_subtract(a1, planes_attack)]]
-    for x in subs_defend: defend_strike[0][0][x[1]] = x[0]
-    attack_strike_probs = [prb.binomial_joint(*[(x[0][i], i/float(len(x[0]))) for i in range(len(x[0]))]) for x in attack_strike]
-    defend_strike_probs = [prb.binomial_joint(*[(x[0][i], i/float(len(x[0]))) for i in range(len(x[0]))]) for x in defend_strike]
-    attack_strike_outcomes = [] #[[casualties, suffering_army]...]
-    for i in range(len(attack_strike)): attack_strike_outcomes.append([(j, attack_strike[i][1]) for j in range(len(attack_strike_probs[i]))])
-    defend_strike_outcomes = []
-    for i in range(len(defend_strike)): defend_strike_outcomes.append([(j, defend_strike[i][1]) for j in range(len(defend_strike_probs[i]))])
-    #then everybody shoots except subs
-    #now things get nested ... in embedded battle, we have this:
-    #   [x_strikes_y, resulting_y] for all the damage x can do to y, and [y_strikes_x, resulting_x] ... then cross them
-    #here we need to track some back and forth. (prior outcomes are not independent of each other.)
-    #   for each (n, m) where n in strike(x_subs, Y<excluding y_planes>) and m in strike(y_subs, X<excluding x_planes>)
-    #       calculate Y-(n+p) and X-(m+q), for all values p in attack(X_reduced_by_Y_strike, Y), and all values of q calculated similarly for X getting attacked
-    #           probably easier to just reduce the fleets in place and assign a probability to that pairing squaring off after the first round than it is to hand it off to embedded_battle() to do the reductions
-    #       calculate Y-(n+p) and X-(m+q), for all values p in attack(X_reduced_by_Y_strike, Y), and all values of q calculated similarly for X getting attacked
+    for x in subs_defend: defend_strike[x[1]] = x[0]
+    attack_strike_probs = prb.binomial_joint(*[(attack_strike[i], i/float(len(attack_strike))) for i in range(len(attack_strike))])
+    defend_strike_probs = prb.binomial_joint(*[(defend_strike[i], i/float(len(defend_strike))) for i in range(len(defend_strike))])
+    #h = []
+    h = {}
+    for i in range(len(attack_strike_probs)):
+        for j in range(len(defend_strike_probs)):
+            alt1 = losses(subs_attack,                                  #4 remove subs
+                    revive(planes_attack,                               #3 add planes back in
+                        a_minus(j,                                      #2 apply defender's strike
+                            *losses(planes_attack, [x for x in a1]))))  #1 separate planes from legitimate targets of strike ... planes vector needs to be length-6
+            alt2 = losses(subs_defend, revive(planes_defend, a_minus(i, *losses(planes_defend, [x for x in a2]))))
+            attack_core_probs = prb.binomial_joint(*[(alt1[k], k/len(alt1)) for k in range(len(alt1))]) #5 calculate damage dealt by non-subs
+            defend_core_probs = prb.binomial_joint(*[(alt2[k], k/len(alt2)) for k in range(len(alt2))])
+            for m in range(len(attack_core_probs)):
+                for n in range(len(defend_core_probs)):
+                    attack_survivors = a_minus(n,       #7 apply defender's post-strike response
+                            *revive(subs_attack, alt1)) #6 add subs back in
+                    defend_survivors = a_minus(m, *revive(subs_defend, alt2))
+                    #h.append((sim_or_calc(sum(attack_survivors), sum(defend_survivors), attack_survivors, defend_survivors), attack_strike_probs[i]*attack_core_probs[m]*defend_strike_probs[j]*defend_core_probs[n])) #subs-air distinction should not be erased
+                    outcome =  sim_or_calc(sum(attack_survivors), sum(defend_survivors), attack_survivors, defend_survivors) #subs-air distinction should not be erased
+                    if outcome[0] not in h: h[outcome[0]] = prb.product(*((outcome[1],)+(attack_strike_probs[i],attack_core_probs[m],defend_strike_probs[j],defend_core_probs[n]))) #re-creating weight_outcomes()
+                    else: h[outcome[0]] += prb.product(*((outcome[1],)+(attack_strike_probs[i],attack_core_probs[m],defend_strike_probs[j],defend_core_probs[n])))
+    return [(x, h[x]) for x in h]
 
 def embedded_battle(prior_outcomes1, prior_outcomes2, a1, a2): #openers1/2, core1/2
     #2 or  more, use a for... no reason to just have a prior stage of battle, could have entire sequences of prior battles
