@@ -125,7 +125,7 @@ def simulate(grid, trans, cap):
         paths += 1
     return [(x, h[x]/float(paths)) for x in h]
 
-def sim_or_calc(n, m, a1, a2): #n, m can be replaced with p = sum(n+m) (just have to change calls to this elsewhere)
+def sim_or_calc(n, m, a1, a2): 
     if n + m > 14:
         outcomes = simulate(make_grid(n, m), weight_transitions(a1, a2, make_transitions(n, m)), 10000)
     else:
