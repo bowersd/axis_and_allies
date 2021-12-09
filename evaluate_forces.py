@@ -152,6 +152,7 @@ def sim_or_calc(n, m, a1, a2):
 def revive(excluded, core):
     return [core[i]+excluded[i] for i in range(len(core))]
 
+#this leaks probability (all outcomes do not sum to one)
 def subs_sneak_strike(subs_attack, subs_defend, planes_attack, planes_defend, a1, a2): #this implements a lot of what is needed for fully accurate naval-air combat
     subs_attack_probs = prb.binomial_joint(*[(subs_attack[i], i/float(len(subs_attack))) for i in range(len(subs_attack))])
     subs_defend_probs = prb.binomial_joint(*[(subs_defend[i], i/float(len(subs_defend))) for i in range(len(subs_defend))])
