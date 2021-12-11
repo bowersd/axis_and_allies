@@ -51,8 +51,10 @@ def arg_parser():
     parser.add_argument('-c', '--casualties', action="store_true", help="whether to show casualties")
     parser.add_argument('-aa', '--anti_aircraft', nargs=2, action='append', help="pairs of number of units, hit value (targets of anti-aircraft). as in -aa 1 3 -aa 2 4 for one fighter and two bombers", default = [])
     parser.add_argument('-b', '--bombardment', nargs=2, action='append', help="pairs of number of units, hit value. as in -b 1 4 for one bombarding battleship", default = [])
-    parser.add_argument('-sa', '--submarines_attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -sa 1 2 for one attacking sub (no opposing destroyer present)")
-    parser.add_argument('-sd', '--submarines_defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -sd 1 2 for one defending sub (no opposing destroyer present)")
+    parser.add_argument('-sa', '--submarines_attacker', nargs=2, action='append', help="pairs of number of units, hit value. as in -sa 1 2 for one attacking sub (no opposing destroyer present)", default = [])
+    parser.add_argument('-sd', '--submarines_defender', nargs=2, action='append', help="pairs of number of units, hit value. as in -sd 1 2 for one defending sub (no opposing destroyer present)", default = [])
+    parser.add_argument('-sap', '--submarines_attacker_planes', nargs=2, action='append', help="pairs of number of units, hit value. as in -sap 1 3 for one attacking fighter", default = [])
+    parser.add_argument('-sdp', '--submarines_defender_planes', nargs=2, action='append', help="pairs of number of units, hit value. as in -sdp 1 4 for one defending fighter", default = [])
     return parser
 
 
