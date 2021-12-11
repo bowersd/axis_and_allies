@@ -176,11 +176,8 @@ def subs_sneak_strike(subs_attack, subs_defend, planes_attack, planes_defend, a1
                                 *revive(subs_attack, alt1)) #6 add subs back in
                         defend_survivors = a_minus(m, *revive(subs_defend, alt2))
                         #h.append((sim_or_calc(sum(attack_survivors), sum(defend_survivors), attack_survivors, defend_survivors), subs_attack_probs[i]*attack_core_probs[m]*subs_defend_probs[j]*defend_core_probs[n])) #subs-air distinction should not be erased
-                        if any(attack_survivors) and any(defend_survivors): 
-                            outcome =  [(x[0], x[1]*subs_attack_probs[i]*subs_defend_probs[j]*attack_core_probs[m]*defend_core_probs[n]) for x in sim_or_calc(sum(attack_survivors), sum(defend_survivors), attack_survivors, defend_survivors)] #subs-air distinction should not be erased
-                        else: 
-                            outcome = [((sum(attack_survivors), sum(defend_survivors)), prb.product(*((subs_attack_probs[i],attack_core_probs[m],subs_defend_probs[j],defend_core_probs[n]))))]
-                            print(outcome)
+                        if any(attack_survivors) and any(defend_survivors): outcome =  [(x[0], x[1]*subs_attack_probs[i]*subs_defend_probs[j]*attack_core_probs[m]*defend_core_probs[n]) for x in sim_or_calc(sum(attack_survivors), sum(defend_survivors), attack_survivors, defend_survivors)] #subs-air distinction should not be erased
+                        else: outcome = [((sum(attack_survivors), sum(defend_survivors)), prb.product(*((subs_attack_probs[i],attack_core_probs[m],subs_defend_probs[j],defend_core_probs[n]))))]
                         for o in outcome:
                             if o[0] not in h: h[o[0]] = o[1]
                             else: h[o[0]] += o[1] 
