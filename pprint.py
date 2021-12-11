@@ -88,6 +88,13 @@ if __name__ == "__main__":
             prior2_outcomes = []
             for i in range(len(prior2)): prior2_outcomes.append([(j, prior2[i][1]) for j in range(len(prior2probs[i]))])
             pprint_b(*ef.weight_outcomes(prior1probs, prior2probs, *ef.embedded_battle(prior1_outcomes, prior2_outcomes, a1, a2)))
+        elif args.submarines_attacker or args.submarines_defender:
+            sa, sd, sap, sdp = ([0 for i in range(6)], [0 for i in range(6)], [0 for i in range(6)], [0 for i in range(6)])
+            for x in args.submarines_attacker: sa[int(x[1])] = int(x[0])
+            for x in args.submarines_defender: sd[int(x[1])] = int(x[0])
+            for x in args.submarines_attacker_planes: sap[int(x[1])] = int(x[0])
+            for x in args.submarines_attacker_planes: sdp[int(x[1])] = int(x[0])
+            pprint_b(*ef.subs_sneak_strike(sa, sd, sap, sdp, a1, a2))
         else:
             outcomes = ef.sim_or_calc(n, m, a1, a2)
             pprint_b(*outcomes)
